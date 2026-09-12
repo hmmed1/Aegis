@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AEGIS // Network Sensor</title>
+<style>
+  :root {
+    --bg-void:      #0a0a0a;
+    --bg-panel:     #131313;
+    --bg-row-alt:   #101010;
+    --hazard:       #FFC300;
+    --hazard-dim:   #7a5c00;
+    --hazard-line:  rgba(255, 195, 0, 0.25);
+    --text-primary: #e9e9e9;
+    --text-muted:   #6f6f6f;
+    --danger:       #ff4d4d;
+    --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Consolas,
+                 "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .shell {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ---------------- SIDEBAR ---------------- */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--hazard-line);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: width 0.25s ease, padding 0.25s ease, border-color 0.25s ease;
+  }
+
+  .sidebar.collapsed {
+    width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-right-color: transparent;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .brand {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--hazard);
+    letter-spacing: 0.08em;
+  }
+
+  .brand-sub {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .icon-btn {
+    background: none;
+    border: 1px solid var(--hazard-line);
+    color: var(--hazard-dim);
+    border-radius: 3px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .icon-btn:hover {
+    color: var(--hazard);
+    border-color: var(--hazard);
+  }
+
+  .icon-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    cursor: default;
+    user-select: none;
+  }
+
+  .nav-item.active {
+    color: var(--hazard);
+    background: rgba(255, 195, 0, 0.06);
+    border-left: 2px solid var(--hazard);
+  }
+
+  .nav-item.disabled {
+    color: #3d3d3d;
+    cursor: not-allowed;
+  }
+
+  .nav-item.disabled .nav-tag {
+    margin-left: auto;
+    font-size: 9px;
+    border: 1px solid #2a2a2a;
+    color: #4a4a4a;
+    padding: 1px 5px;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    border-top: 1px solid var(--hazard-line);
+    padding-top: 14px;
+  }
+
+  .sidebar-footer .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    margin-right: 6px;
+  }
+
+  .sidebar-footer .dot.live {
+    background: var(--hazard);
+    box-shadow: 0 0 6px var(--hazard);
+  }
+
+  /* ---------------- MAIN ---------------- */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 24px 28px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .panel-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-toggle {
+    position: fixed;
+    top: 50%;
+    left: 209px;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 20px;
+    height: 20px;
+    background: var(--bg-panel);
+    transition: left 0.25s ease;
+  }
+
+  .sidebar-toggle svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .sidebar.collapsed .sidebar-toggle {
+    left: 4px;
+  }
+
+
+  .panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+  }
+
+  .panel-title .accent { color: var(--hazard); }
+
+  .panel-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  .panel-meta span b {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .panel-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    letter-spacing: 0.02em;
+  }
+
+  .table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--hazard-line);
+    border-radius: 3px;
+    background: var(--bg-panel);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: #1a1500;
+    color: var(--hazard);
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+    border-bottom: 1px solid var(--hazard-line);
+    white-space: nowrap;
+    z-index: 1;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #1c1c1c;
+  }
+
+  tbody tr:nth-child(even) {
+    background: var(--bg-row-alt);
+  }
+
+  tbody tr:hover {
+    background: rgba(255, 195, 0, 0.05);
+  }
+
+  td {
+    padding: 8px 14px;
+    white-space: nowrap;
+    color: var(--text-primary);
+  }
+
+  td.ip { color: #d8d8d8; }
+  td.port { color: var(--text-muted); }
+  td.proto {
+    color: var(--hazard);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  td.flash {
+    animation: flash-update 0.6s ease-out;
+  }
+
+  @keyframes flash-update {
+    from { background-color: rgba(255, 195, 0, 0.25); }
+    to   { background-color: transparent; }
+  }
+
+  .empty-state {
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-void); }
+  ::-webkit-scrollbar-thumb { background: var(--hazard-dim); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="sidebar" id="sidebar">
+    <button class="icon-btn sidebar-toggle" id="sidebar-toggle" title="Show/hide sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3v18M15 3v18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+
+    <div class="brand-row">
+      <div class="brand-mark">
+        <span class="brand">AEGIS</span>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-item active">Traffic Monitor</div>
+      <div class="nav-item disabled">Alert Engine <span class="nav-tag">SOON</span></div>
+      <div class="nav-item disabled">Signature Detection <span class="nav-tag">SOON</span></div>
+      <div class="nav-item disabled">System Logs <span class="nav-tag">SOON</span></div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div><span class="dot" id="conn-dot"></span><span id="conn-text">CONNECTING</span></div>
+      <div style="margin-top:6px;">SENSOR: LOCAL INTERFACE</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="panel-header">
+      <div class="panel-title-row">
+        <div class="panel-title"><span class="accent">//</span> Traffic Monitor</div>
+      </div>
+      <div class="panel-meta">
+        <span>ACTIVE FLOWS: <b id="flow-count">0</b></span>
+        <span>LAST UPDATE: <b id="last-update">--:--:--</b></span>
+      </div>
+    </div>
+    <div class="panel-sub">Live bidirectional 5-tuple flow table, aggregated from raw packet capture.</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Src Port</th>
+            <th>Dst Port</th>
+            <th>Protocol</th>
+            <th style="text-align:right;">Packets</th>
+                        <th style="text-align:right;">Total Bytes</th>
+          </tr>
+        </thead>
+        <tbody id="traffic-rows">
+          <tr id="empty-row">
+            <td colspan="7" class="empty-state">WAITING FOR SENSOR DATA STREAM...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+  let socket = null;
+
+  function connectSensor() {
+      const connDot = document.getElementById("conn-dot");
+      const connText = document.getElementById("conn-text");
+
+      connDot.className = "dot";
+      connText.innerText = "CONNECTING";
+
+      socket = new WebSocket("ws://localhost:8000/ws/traffic");
+
+      socket.onopen = function() {
+          connDot.className = "dot live";
+          connText.innerText = "LIVE STREAM";
+          console.log("AEGIS Dashboard linked to backend sensor pipeline.");
+      };
+
+      socket.onmessage = function(event) {
+          const trafficData = JSON.parse(event.data);
+          const flowCountBadge = document.getElementById("flow-count");
+          const lastUpdateBadge = document.getElementById("last-update");
+          
+          flowCountBadge.innerText = trafficData.length;
+          
+          const now = new Date();
+          lastUpdateBadge.innerText = now.toTimeString().split(' ')[0];
+          
+          updateTrafficTable(trafficData);
+      };
+
+      socket.onclose = function() {
+          connDot.className = "dot";
+          connText.innerText = "DISCONNECTED";
+          console.log("Pipeline dropped. Retrying link in 3 seconds...");
+          setTimeout(connectSensor, 3000);
+      };
+  }
+
+  function updateTrafficTable(flows) {
+      const tbody = document.getElementById("traffic-rows");
+      tbody.innerHTML = "";
+      
+      if (flows.length === 0) {
+          tbody.innerHTML = `
+              <tr id="empty-row">
+                  <td colspan="7" class="empty-state">WAITING FOR SENSOR DATA STREAM...</td>
+              </tr>`;
+          return;
+      }
+      
+      flows.forEach(function(flow) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td class="ip">${flow.src_ip}</td>
+              <td class="ip">${flow.dst_ip}</td>
+              <td class="port">${flow.src_port}</td>
+              <td class="port">${flow.dst_port}</td>
+              <td class="proto">${flow.protocol}</td>
+              <td class="num">${flow.packet_count}</td>
+              <td class="num">${flow.total_bytes.toLocaleString()}</td>
+          `;
+          tbody.appendChild(row);
+      });
+  }
+
+  const toggleBtn = document.getElementById("sidebar-toggle");
+  const sidebar = document.getElementById("sidebar");
+  if (toggleBtn && sidebar) {
+      toggleBtn.addEventListener("click", function() {
+          sidebar.classList.toggle("collapsed");
+      });
+  }
+
+  connectSensor();
+</script>
+</body>
+</html>
