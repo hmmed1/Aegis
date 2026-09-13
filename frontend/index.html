@@ -227,6 +227,7 @@
 
   .panel-meta {
     display: flex;
+    align-items: center;
     gap: 20px;
     font-size: 11px;
     color: var(--text-muted);
@@ -243,6 +244,96 @@
     color: var(--text-muted);
     margin-bottom: 18px;
     letter-spacing: 0.02em;
+  }
+
+  /* ---------------- PROFILE MENU ---------------- */
+  .profile-menu {
+    position: relative;
+  }
+
+  .profile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-panel);
+    border: 1px solid var(--hazard-line);
+    color: var(--hazard-dim);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .profile-btn:hover,
+  .profile-btn.open {
+    color: var(--hazard);
+    border-color: var(--hazard);
+  }
+
+  .profile-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .profile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 190px;
+    background: var(--bg-panel);
+    border: 1px solid var(--hazard-line);
+    border-radius: 4px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 20;
+  }
+
+  .profile-dropdown.open {
+    display: flex;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    border-radius: 3px;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(255, 195, 0, 0.08);
+    color: var(--hazard);
+  }
+
+  .dropdown-item svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: var(--hazard-line);
+    margin: 4px 2px;
+  }
+
+  .dropdown-item.logout:hover {
+    background: rgba(255, 77, 77, 0.1);
+    color: var(--danger);
   }
 
   .table-wrap {
@@ -363,9 +454,33 @@
       <div class="panel-meta">
         <span>ACTIVE FLOWS: <b id="flow-count">0</b></span>
         <span>LAST UPDATE: <b id="last-update">--:--:--</b></span>
+
+        <div class="profile-menu">
+          <button class="profile-btn" id="profile-btn" title="Operator menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="3.5"/>
+              <path d="M4.5 20c1.5-4 5-6 7.5-6s6 2 7.5 6" stroke-linecap="round"/>
+            </svg>
+          </button>
+
+          <div class="profile-dropdown" id="profile-dropdown">
+            <button class="dropdown-item" id="notifications-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 01-3.46 0" stroke-linecap="round"/></svg>
+              Notifications
+            </button>
+            <button class="dropdown-item" id="account-settings-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Account Settings
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" id="logout-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="panel-sub">Live bidirectional 5-tuple flow table, aggregated from raw packet capture.</div>
 
     <div class="table-wrap">
       <table>
@@ -463,6 +578,46 @@
           sidebar.classList.toggle("collapsed");
       });
   }
+
+  // ---------------- PROFILE DROPDOWN ----------------
+  const profileBtn = document.getElementById("profile-btn");
+  const profileDropdown = document.getElementById("profile-dropdown");
+
+  profileBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      profileBtn.classList.toggle("open");
+      profileDropdown.classList.toggle("open");
+  });
+
+  document.addEventListener("click", function (e) {
+      if (!profileDropdown.contains(e.target) && e.target !== profileBtn) {
+          profileBtn.classList.remove("open");
+          profileDropdown.classList.remove("open");
+      }
+  });
+
+  document.getElementById("notifications-btn").addEventListener("click", function () {
+      // Placeholder - wire to a real notifications page later.
+      console.log("Notifications clicked (placeholder).");
+  });
+
+  document.getElementById("account-settings-btn").addEventListener("click", function () {
+      // Placeholder - wire to a real account settings page later.
+      console.log("Account Settings clicked (placeholder).");
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", async function () {
+      try {
+          const res = await fetch("/logout", { method: "POST" });
+          if (res.ok) {
+              window.location.href = "/";
+          } else {
+              console.error("Logout failed:", res.status);
+          }
+      } catch (err) {
+          console.error("Logout request error:", err);
+      }
+  });
 
   connectSensor();
 </script>
