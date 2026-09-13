@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AEGIS // Sign In</title>
+<link rel="icon" type="image/svg+xml" href="assets/aegis-icon-v2.svg">
+<style>
+  :root {
+    --bg-void:      #0a0a0a;
+    --bg-panel:     #131313;
+    --hazard:       #FFC300;
+    --hazard-dim:   #7a5c00;
+    --hazard-line:  rgba(255, 195, 0, 0.25);
+    --text-primary: #e9e9e9;
+    --text-muted:   #6f6f6f;
+    --danger:       #ff4d4d;
+    --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Consolas,
+                 "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .bg-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .login-panel {
+    position: relative;
+    z-index: 1;
+    width: min(380px, 92vw);
+    background: var(--bg-panel);
+    border: 1px solid var(--hazard-line);
+    border-radius: 4px;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logo-shield {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 14px rgba(255, 195, 0, 0.25));
+  }
+
+  .brand {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--hazard);
+    letter-spacing: 0.1em;
+    margin-bottom: 30px;
+  }
+
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  .field input {
+    background: var(--bg-void);
+    border: 1px solid var(--hazard-line);
+    border-radius: 3px;
+    padding: 11px 12px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .field input::placeholder {
+    color: #4a4a4a;
+  }
+
+  .field input:focus {
+    border-color: var(--hazard);
+    box-shadow: 0 0 0 3px rgba(255, 195, 0, 0.1);
+  }
+
+  .submit-btn {
+    margin-top: 6px;
+    background: var(--hazard);
+    color: #0a0a0a;
+    border: none;
+    border-radius: 3px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  .submit-btn:hover { background: #ffd633; }
+  .submit-btn:active { transform: scale(0.98); }
+
+  .error-msg {
+    display: none;
+    font-size: 11px;
+    color: var(--danger);
+    letter-spacing: 0.03em;
+    text-align: center;
+  }
+
+  .error-msg.visible { display: block; }
+</style>
+</head>
+<body>
+
+<div class="bg-layer">
+  <svg width="100%" height="100%" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+    <g transform="translate(800,450) scale(3.6) translate(-120,-133)" fill="none" stroke="#FFC300" stroke-width="1.8" opacity="0.22">
+      <path d="M120,18 L218,54 C218,90 218,118 218,140 C218,192 172,228 120,248
+               C68,228 22,192 22,140 C22,118 22,90 22,54 Z"/>
+    </g>
+<line x1="1309" y1="114" x2="1366" y2="147" stroke="#FFC300" stroke-width="1" opacity="0.18"/>
+<line x1="1508" y1="104" x2="1508" y2="337" stroke="#FFC300" stroke-width="2" opacity="0.24"/>
+<line x1="61" y1="95" x2="142" y2="14" stroke="#FFC300" stroke-width="2" opacity="0.29"/>
+<line x1="1149" y1="203" x2="1270" y2="413" stroke="#FFC300" stroke-width="1" opacity="0.25"/>
+<line x1="569" y1="828" x2="612" y2="871" stroke="#FFC300" stroke-width="1.5" opacity="0.22"/>
+<line x1="318" y1="220" x2="539" y2="93" stroke="#FFC300" stroke-width="1" opacity="0.15"/>
+<line x1="198" y1="367" x2="326" y2="441" stroke="#FFC300" stroke-width="1" opacity="0.32"/>
+<line x1="1098" y1="127" x2="1098" y2="283" stroke="#FFC300" stroke-width="2" opacity="0.2"/>
+<line x1="1287" y1="633" x2="1394" y2="526" stroke="#FFC300" stroke-width="1" opacity="0.13"/>
+<line x1="466" y1="791" x2="466" y2="925" stroke="#FFC300" stroke-width="1" opacity="0.36"/>
+<line x1="778" y1="284" x2="930" y2="196" stroke="#FFC300" stroke-width="1" opacity="0.22"/>
+<line x1="429" y1="686" x2="429" y2="814" stroke="#FFC300" stroke-width="2" opacity="0.3"/>
+<line x1="1093" y1="746" x2="1179" y2="832" stroke="#FFC300" stroke-width="1.5" opacity="0.23"/>
+<line x1="1310" y1="704" x2="1453" y2="561" stroke="#FFC300" stroke-width="1" opacity="0.36"/>
+<line x1="1589" y1="57" x2="1707" y2="57" stroke="#FFC300" stroke-width="1" opacity="0.23"/>
+<line x1="135" y1="216" x2="313" y2="114" stroke="#FFC300" stroke-width="1" opacity="0.3"/>
+<line x1="810" y1="658" x2="935" y2="783" stroke="#FFC300" stroke-width="1" opacity="0.16"/>
+<line x1="1525" y1="574" x2="1696" y2="672" stroke="#FFC300" stroke-width="2" opacity="0.24"/>
+<line x1="1195" y1="408" x2="1302" y2="301" stroke="#FFC300" stroke-width="1" opacity="0.26"/>
+<line x1="186" y1="773" x2="186" y2="845" stroke="#FFC300" stroke-width="1" opacity="0.3"/>
+<line x1="1393" y1="432" x2="1393" y2="644" stroke="#FFC300" stroke-width="1.5" opacity="0.23"/>
+<line x1="958" y1="541" x2="1082" y2="541" stroke="#FFC300" stroke-width="1" opacity="0.31"/>
+<line x1="1099" y1="768" x2="1210" y2="704" stroke="#FFC300" stroke-width="1" opacity="0.2"/>
+<line x1="323" y1="464" x2="375" y2="494" stroke="#FFC300" stroke-width="2" opacity="0.33"/>
+<line x1="1039" y1="108" x2="1230" y2="218" stroke="#FFC300" stroke-width="2" opacity="0.29"/>
+<line x1="313" y1="382" x2="493" y2="562" stroke="#FFC300" stroke-width="2" opacity="0.39"/>
+<line x1="1086" y1="0" x2="1270" y2="-106" stroke="#FFC300" stroke-width="1.5" opacity="0.13"/>
+<line x1="743" y1="899" x2="841" y2="801" stroke="#FFC300" stroke-width="1" opacity="0.19"/>
+<line x1="1161" y1="80" x2="1202" y2="10" stroke="#FFC300" stroke-width="1" opacity="0.39"/>
+<line x1="1090" y1="784" x2="1155" y2="849" stroke="#FFC300" stroke-width="1.5" opacity="0.39"/>
+<circle cx="338" cy="271" r="4" fill="#FFC300" opacity="0.51"/>
+<circle cx="866" cy="216" r="4" fill="#FFC300" opacity="0.48"/>
+<circle cx="1412" cy="205" r="3" fill="#FFC300" opacity="0.37"/>
+<circle cx="1375" cy="665" r="3" fill="#FFC300" opacity="0.38"/>
+<circle cx="1059" cy="462" r="2" fill="#FFC300" opacity="0.32"/>
+<circle cx="131" cy="346" r="2" fill="#FFC300" opacity="0.43"/>
+<circle cx="471" cy="602" r="2" fill="#FFC300" opacity="0.25"/>
+<circle cx="1449" cy="646" r="2" fill="#FFC300" opacity="0.32"/>
+<circle cx="64" cy="880" r="3" fill="#FFC300" opacity="0.27"/>
+<circle cx="487" cy="285" r="3" fill="#FFC300" opacity="0.31"/>
+<circle cx="270" cy="740" r="4" fill="#FFC300" opacity="0.42"/>
+<circle cx="497" cy="803" r="3" fill="#FFC300" opacity="0.49"/>
+<circle cx="389" cy="96" r="2" fill="#FFC300" opacity="0.45"/>
+<circle cx="725" cy="433" r="3" fill="#FFC300" opacity="0.39"/>
+<circle cx="1493" cy="55" r="2" fill="#FFC300" opacity="0.27"/>
+<circle cx="1491" cy="347" r="2" fill="#FFC300" opacity="0.32"/>
+<circle cx="389" cy="549" r="3" fill="#FFC300" opacity="0.29"/>
+<circle cx="375" cy="285" r="3" fill="#FFC300" opacity="0.32"/>
+<circle cx="154" cy="453" r="4" fill="#FFC300" opacity="0.28"/>
+<circle cx="1335" cy="553" r="2" fill="#FFC300" opacity="0.54"/>
+<circle cx="1543" cy="869" r="2" fill="#FFC300" opacity="0.3"/>
+<circle cx="994" cy="492" r="2" fill="#FFC300" opacity="0.51"/>
+  </svg>
+</div>
+
+<div class="login-panel">
+  <img class="logo-shield" src="assets/aegis-icon-v2.svg" alt="AEGIS shield logo">
+  <div class="brand">AEGIS</div>
+
+  <form id="login-form">
+    <div class="field">
+      <label for="username">OPERATOR ID</label>
+      <input type="text" id="username" name="username" placeholder="operator@aegis.local" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="password">PASSPHRASE</label>
+      <input type="password" id="password" name="password" placeholder="••••••••••••" autocomplete="current-password" required>
+    </div>
+
+    <div class="error-msg" id="error-msg">ACCESS DENIED — CHECK CREDENTIALS</div>
+
+    <button type="submit" class="submit-btn">AUTHENTICATE</button>
+  </form>
+</div>
+
+<script>
+
+  const form = document.getElementById("login-form");
+  const errorMsg = document.getElementById("error-msg");
+
+  form.addEventListener("submit",async function (e) {
+    e.preventDefault();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    const credentials = { username:username, password:password };
+    const jsonText = JSON.stringify(credentials);
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: jsonText
+      
+    });
+    if (response.ok) {
+      window.location.href = "/dashboard";
+    }
+    
+   else {
+      errorMsg.classList.add("visible");
+    }
+  });
+</script>
+
+</body>
+</html>

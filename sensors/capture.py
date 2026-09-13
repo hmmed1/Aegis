@@ -11,8 +11,7 @@ import threading
 TIMEOUT_LIMIT = 10
 JANITOR_INTERVAL = 5
 
-# Use Scapy's interface object directly.
-# Your Wi-Fi adapter is interface index 9.
+
 try:
     INTERFACE = conf.ifaces.dev_from_index(9)
 except Exception as e:

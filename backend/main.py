@@ -4,9 +4,14 @@ import json
 import asyncio
 import threading
 
-from fastapi import FastAPI, WebSocket
+
+from pydantic import BaseModel
+from fastapi import HTTPException
+
+from fastapi import FastAPI, WebSocket,Response, Request
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
 
 
 # ----------------------------------------------------------------------
@@ -160,6 +165,9 @@ async def lifespan(app: FastAPI):
     yield
 
 
+
+
+
 # ----------------------------------------------------------------------
 # FASTAPI APPLICATION
 # ----------------------------------------------------------------------
@@ -177,20 +185,19 @@ BACKEND_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
-HTML_PATH = os.path.join(
-    os.path.dirname(BACKEND_DIR),
-    "frontend",
-    "index.html"
-)
-
-
+LOGIN_HTML_PATH = os.path.join(os.path.dirname(BACKEND_DIR), "frontend", "login.html")
+DASHBOARD_HTML_PATH = os.path.join(os.path.dirname(BACKEND_DIR), "frontend", "index.html")
+ASSETS_DIR = os.path.join(os.path.dirname(BACKEND_DIR), "frontend", "assets")
+app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 @app.get("/")
-async def serve_dashboard():
+async def serve_default():
 
     return FileResponse(
-        HTML_PATH
+        LOGIN_HTML_PATH
     )
-
+@app.get("/dashboard")
+async def serve_dashboard():
+    return FileResponse(DASHBOARD_HTML_PATH)
 
 # ----------------------------------------------------------------------
 # WEBSOCKET
@@ -228,6 +235,28 @@ async def traffic_websocket_endpoint(
                 websocket
             )
 
+
+
+
+
+
+# ----------------------------------------------------------------------
+# Credentials check
+# ----------------------------------------------------------------------
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+
+@app.post("/login")
+async def login(request: LoginRequest, response: Response):
+    if request.username == "hmedd1" and request.password == "hmedd1":
+        response.set_cookie(key="session", value="authenticated", httponly=True) 
+        return {"message": "Login successful"}
+    
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 # ----------------------------------------------------------------------
 # DEVELOPMENT SERVER
