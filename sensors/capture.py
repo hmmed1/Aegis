@@ -12,10 +12,14 @@ TIMEOUT_LIMIT = 10
 JANITOR_INTERVAL = 5
 
 
+# --- FIXED AUTOMATIC INTERFACE SELECTION ---
 try:
-    INTERFACE = conf.ifaces.dev_from_index(9)
+    # Use Scapy's automatically detected default loop/internet interface
+    INTERFACE = conf.iface
+    if not INTERFACE:
+        raise RuntimeError("Scapy could not find any active default interface.")
 except Exception as e:
-    raise RuntimeError(f"Could not find network interface 9: {e}")
+    raise RuntimeError(f"Could not initialize network interface: {e}")
 
 
 # ----------------------------------------------------------------------
@@ -254,13 +258,6 @@ def flow_janitor():
 
 
             for key in expired_keys:
-
-                print(
-                    f"[FLOW EXPIRED] "
-                    f"Expelled: "
-                    f"{key[0]} <-> {key[1]} "
-                    f"({key[4]})"
-                )
 
                 del active_flows[key]
 

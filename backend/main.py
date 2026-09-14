@@ -135,7 +135,7 @@ app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
 async def verify_session_cookie(request: Request):
     session_cookie = request.cookies.get("session")
-    if session_cookie != "authenticated":
+    if session_cookie != "authenticated" or session_cookie is None:
         raise HTTPException(status_code=303, detail="Redirecting...") 
 
 
@@ -145,7 +145,7 @@ async def verify_session_cookie(request: Request):
 # ----------------------------------------------------------------------
 async def is_authenticated(request: Request) -> bool:
     session_cookie = request.cookies.get("session")
-    return session_cookie == "authenticated"
+    return session_cookie == "authenticated" and session_cookie is not None
 
 
 
@@ -191,9 +191,25 @@ class LoginRequest(BaseModel):
     password: str
 
 # ----------------------------------------------------------------------
+# CACHE CONTROL MIDDLEWARE
+# ----------------------------------------------------------------------
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    
+    # Target EVERY primary HTML routing endpoint aggressively
+    if request.url.path in ["/", "/dashboard", "/login"]:
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        
+    return response
+
+
+# ----------------------------------------------------------------------
 # AUTHENTICATION ENDPOINTS
 # ----------------------------------------------------------------------
-@app.get("/login_page")
+@app.get("/login")
 async def serve_login_page(authenticated: bool = Depends(is_authenticated)):
     if authenticated:
         return RedirectResponse(url="/dashboard", status_code=303)

@@ -606,18 +606,29 @@
       console.log("Account Settings clicked (placeholder).");
   });
 
-  document.getElementById("logout-btn").addEventListener("click", async function () {
-      try {
-          const res = await fetch("/logout", { method: "POST" });
-          if (res.ok) {
-              window.location.href = "/";
-          } else {
-              console.error("Logout failed:", res.status);
-          }
-      } catch (err) {
-          console.error("Logout request error:", err);
-      }
-  });
+ // Assuming your websocket variable is named 'socket' or 'trafficSocket'
+// Make sure this variable is accessible inside your event listener scope!
+document.getElementById("logout-btn").addEventListener("click", async function () {
+    try {
+        if (window.trafficSocket && window.trafficSocket.readyState === WebSocket.OPEN) {
+            window.trafficSocket.close(1000, "User logged out"); 
+        }
+
+        const res = await fetch("/logout", { method: "POST" });
+        
+        if (res.ok) {
+            localStorage.clear();
+            sessionStorage.clear();
+
+            window.location.replace("/");
+        } else {
+            console.error("Logout failed:", res.status);
+        }
+    } catch (err) {
+        console.error("Logout request error:", err);
+    }
+});
+
 
   connectSensor();
 </script>
