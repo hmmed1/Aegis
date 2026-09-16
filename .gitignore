@@ -1,32 +1,9 @@
-
-# === Python Caches ===
 __pycache__/
-*.py[cod]
-*$py.class
-
-# === Python Virtual Environments ===
+*.pyc
 .venv/
 venv/
-ENV/
-env/
-
-# === IDE & Text Editor Metadata ===
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.swp
-
-# === Local Runtime Artifacts & System Files ===
+.env
 .DS_Store
-Thumbs.db
 *.log
-npcap_setup.exe
-npcap_installer.exe
-
-# === FastAPI & Deployment Garbage ===
 .pytest_cache/
-.coverage
-htmlcov/
+.mypy_cache/
