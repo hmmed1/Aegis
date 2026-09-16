@@ -1,9 +1,5 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
 .env
-.DS_Store
-*.log
+.env.test
+__pycache__/
 .pytest_cache/
-.mypy_cache/
+*.pycgit 

@@ -1,0 +1,6 @@
+{
+  "include": ["backend", "sensors"],
+  "extraPaths": ["backend"],
+  "reportMissingImports": "none",
+  "pythonVersion": "3.12"
+}
