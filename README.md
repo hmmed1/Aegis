@@ -1,10 +1,13 @@
-# Aegis
+<p align="center">
+  <img src="frontend/assets/aegis-icon-v2.svg" alt="Aegis logo" width="120">
+</p>
 
-I built Aegis as a personal project to learn how real network monitoring and
-modern backend systems work. It's small right now, but I'm building it step by
-step into something more secure, more reliable, and packed with features you'd
-find in real security and network tools — intrusion detection, device discovery,
-and cloud asset visibility.
+<h1 align="center">Aegis</h1>
+
+<p align="center">
+Self-hosted network monitoring with live flow analysis, device discovery, and cloud security auditing — built to grow into a small-scale NDR.
+</p>
+Managing network visibility today usually means paying for three or four separate tools — one for traffic analysis, one for device discovery, one for intrusion detection, one for cloud auditing. I built Aegis to combine all of that into a single self-hosted platform.
 
 The name comes from the aegis of Greek mythology — a shield. That felt right
 for a project about watching over a network.
