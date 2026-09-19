@@ -107,7 +107,7 @@ Every step is committed here so the history of how it grew is visible.
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/<your-username>/aegis.git
+git clone https://github.com/hmedd1/aegis.git
 cd aegis
 ```
 
