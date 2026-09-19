@@ -3,11 +3,11 @@
 
 import asyncio
 import json
+import logging
 
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from sensors.capture import active_flows, flows_lock
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -58,10 +58,9 @@ async def broadcast_loop() -> None:
 
         for ws in active_connections:
             try:
-                await ws.send_text(payload)
-            except Exception:
+               await ws.send_text(payload)
+            except WebSocketDisconnect:
                 dead.append(ws)
-
         for ws in dead:
             if ws in active_connections:
                 active_connections.remove(ws)
@@ -73,11 +72,15 @@ async def traffic_websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     active_connections.append(websocket)
     logger.info("websocket client connected (total=%d)", len(active_connections))
+    from fastapi import WebSocketDisconnect
     try:
         while True:
             await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass  # Normal disconnection, safe to ignore
     except Exception:
-        pass
+        logger.exception("Unexpected error in WebSocket client read loop")
+
     finally:
         if websocket in active_connections:
             active_connections.remove(websocket)

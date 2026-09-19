@@ -1,16 +1,28 @@
-
 stages:
+  - ruff_test
   - test
   - security
 
+ruff_test:
+  stage: ruff_test
+  image: python:3.12-slim 
+  allow_failure: true
+  before_script:
+    - pip install ruff
+  script:
+    - ruff check . --output-format=junit --output-file=ruff_report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: ruff_report.xml  
 
 test:
   stage: test
   image: python:3.12-slim 
   before_script:
-    - pip install -r backend/requirements.txt
+    - pip install -r backend/requirements.txt pytest pytest-xml
   script:
-    - python -m pytest backend/tests -v
+    - python -m pytest backend/tests -v --junitxml=report.xml
   artifacts:
     when: always
     reports:
@@ -21,7 +33,7 @@ security-scan:
   image: python:3.12-slim
   script:
     - pip install bandit
-    - bandit -r backend/ -f json -o bandit-report.json || true
+    - bandit -r backend/ -f json -o bandit-report.json
   artifacts:
     when: always
     paths:

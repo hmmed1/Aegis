@@ -22,11 +22,12 @@ if _PROJECT_ROOT not in sys.path:
 if _BACKEND_DIR not in sys.path:
     sys.path.append(_BACKEND_DIR)
 
-from scapy.all import sniff, Ether, IP, TCP, UDP, ARP, IPv6, conf  # type: ignore[attr-defined]
-from scapy.layers.inet import IP_PROTOS  # type: ignore[attr-defined]
-
 from app.config import settings
-
+from scapy.all import conf, sniff
+from scapy.data import IP_PROTOS
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.inet6 import IPv6
+from scapy.layers.l2 import ARP, Ether
 
 # ---------------------------------------------------------------------
 # INTERFACE DETECTION
@@ -36,8 +37,8 @@ try:
     INTERFACE = conf.iface
     if not INTERFACE:
         raise RuntimeError("Scapy could not find any active default interface.")
-except Exception as e:
-    raise RuntimeError(f"Could not initialize network interface: {e}")
+except Exception as e:  # noqa: BLE001
+    raise RuntimeError(f"Could not initialize network interface: {e}") from e
 
 
 # ---------------------------------------------------------------------
@@ -65,6 +66,7 @@ def get_protocol_name(protocol):
 # ---------------------------------------------------------------------
 
 def universal_parser(pkt):
+    """Parse incoming packets and extract key network properties."""
     src_ip = None
     dst_ip = None
     src_port = None
@@ -125,6 +127,7 @@ def universal_parser(pkt):
 # ---------------------------------------------------------------------
 
 def get_pkt_flow(key, packet_size):
+    """Aggregate packet data size and timestamps into active state dictionary."""
     current_time = time.time()
     with flows_lock:
         if key in active_flows:
@@ -145,6 +148,7 @@ def get_pkt_flow(key, packet_size):
 # ---------------------------------------------------------------------
 
 def flow_janitor():
+    """Background worker loop to safely evict stagnant network connections."""
     while True:
         time.sleep(settings.janitor_interval_seconds)
         current_time = time.time()
@@ -160,14 +164,20 @@ def flow_janitor():
 
 
 # ---------------------------------------------------------------------
-# SENSOR ENGINE
+# ENGINE LIFECYCLE
 # ---------------------------------------------------------------------
 
 def start_sensor_engine():
+    """Spawn the monitoring engine loop and janitor thread worker."""
     janitor_thread = threading.Thread(target=flow_janitor, daemon=True)
     janitor_thread.start()
 
-    print("AEGIS Network Sensor Thread Spawning. Monitoring network layer...")
-    print(f"[AEGIS] Capture interface: {INTERFACE}")
-
-    sniff(iface=INTERFACE, prn=universal_parser, store=False)
+    sniff_thread = threading.Thread(
+        target=lambda: sniff(
+            iface=INTERFACE,
+            prn=universal_parser,
+            store=False
+        ),
+        daemon=True
+    )
+    sniff_thread.start()

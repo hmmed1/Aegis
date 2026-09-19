@@ -6,12 +6,11 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import FileResponse, RedirectResponse
-from pydantic import BaseModel
 from pwdlib import PasswordHash
+from pydantic import BaseModel
 
 from app.config import settings
 from app.paths import LOGIN_HTML_PATH
-
 
 logger = logging.getLogger(__name__)
 

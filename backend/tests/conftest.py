@@ -10,9 +10,8 @@ sys.path.insert(0, str(BACKEND_DIR))
 os.environ["ENV_FILE"] = str(BACKEND_DIR / ".env.test")
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app as fastapi_app
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture

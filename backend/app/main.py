@@ -1,8 +1,6 @@
 import os
 import sys
 
-
-
 sys.path.append(
     os.path.dirname(
         os.path.dirname(
@@ -10,9 +8,8 @@ sys.path.append(
         )
     )
 )
-from app.logging_config import setup_logging 
-import logging
 import asyncio
+import logging
 import threading
 from contextlib import asynccontextmanager
 
@@ -20,9 +17,11 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from app.auth import router as auth_router
+from app.logging_config import setup_logging
 from app.paths import ASSETS_DIR
 from app.routes.pages import router as pages_router
-from app.routes.websocket import broadcast_loop, router as ws_router
+from app.routes.websocket import broadcast_loop
+from app.routes.websocket import router as ws_router
 from sensors.capture import start_sensor_engine
 
 
