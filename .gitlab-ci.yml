@@ -1,34 +1,28 @@
-# This file tells GitLab's cloud servers how to run your project automation
-stages:
-  - configure
 
-optimize_project_presentation:
-  stage: configure
-  image: python:3.10-slim
+stages:
+  - test
+  - security
+
+
+test:
+  stage: test
+  image: python:3.12-slim 
   before_script:
-    - pip install requests
+    - pip install -r backend/requirements.txt
   script:
-    - |
-      python -c "
-      import requests
-      url = 'https://gitlab.com' + '$CI_PROJECT_ID'
-      headers = {'PRIVATE-TOKEN': '$GITLAB_AUTOMATION_TOKEN', 'Content-Type': 'application/json'}
-      payload = {
-          'description': 'AEGIS — Centralized Network Monitoring & Intrusion Detection Platform. A distributed security platform that collects network telemetry from lightweight sensors, analyzes traffic for suspicious activity, and provides centralized monitoring, detection, alerting, and administration.',
-          'topics': ['network-security', 'intrusion-detection', 'cybersecurity', 'siem', 'telemetry'],
-          'service_desk_enabled': True,
-          'wiki_access_level': 'enabled',
-          'releases_access_level': 'enabled',
-          'snippets_access_level': 'disabled',
-          'infrastructure_access_level': 'disabled',
-          'package_registry_access_level': 'disabled'
-      }
-      print('🚀 Cloud pipeline starting: Automating Aegis platform configuration...')
-      res = requests.put(url, headers=headers, json=payload)
-      if res.status_code == 200:
-          print('✅ Success! Project presentation, topics, and sidebar features configured via code.')
-      else:
-          print(f'❌ API Error {res.status_code}: {res.text}')
-      "
-  only:
-    - main  # This pipeline will only fire when you update your main branch
+    - python -m pytest backend/tests -v
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml  
+
+security-scan:
+  stage: security
+  image: python:3.12-slim
+  script:
+    - pip install bandit
+    - bandit -r backend/ -f json -o bandit-report.json || true
+  artifacts:
+    when: always
+    paths:
+      - bandit-report.json
