@@ -8,7 +8,6 @@ Aegis provides self-hosted network monitoring with live flow analysis and ARP-ba
 
 ---
 
-
 ## What it does today
 
 * Captures live network traffic on the host machine (IPv4, IPv6, ARP, TCP, UDP, ICMP)
@@ -28,38 +27,44 @@ Aegis provides self-hosted network monitoring with live flow analysis and ARP-ba
 ## Screenshots
 
 ### 🔑 Secure Login Gate
-![Login Page](docs/screenshots/login.png)
+![Login Page](screenshots/login.png)
 
 ### 🖥️ Live Fleet Status
-![Sensors List Dashboard](docs/screenshots/sensors_list.png)
+![Sensors List Dashboard](screenshots/sensors_list.png)
 
 ### 📊 Real-Time Network Conversations
-![Traffic Monitoring Workspace](docs/screenshots/traffic_monitor.png)
+![Traffic Monitoring Workspace](screenshots/traffic_monitor.png)
 
 ### 🔍 Automated Subnet Mapping
-![Device Discovery Workspace](docs/screenshots/device_discovery.png)
+![Device Discovery Workspace](screenshots/device_discovery.png)
 
 ---
 
-## Project layout
+## Project Layout
 
+```text
 aegis/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # routes, auth-guard middleware, ingest API
-│   │   ├── config.py         # env-driven settings
+│   │   ├── main.py           # Routes, auth-guard middleware, ingest API
+│   │   ├── config.py         # Environment-driven settings
 │   │   ├── security.py       # Argon2id hashing + JWT sessions
-│   │   ├── store.py          # in-memory sensor/flow/device store
+│   │   ├── store.py          # In-memory sensor/flow/device store
 │   │   └── templates/
-│   │       └── index.html    # login gate + dashboard, one template
+│   │       └── index.html    # Login gate + dashboard (Single HTML template)
 │   └── requirements.txt
+├── screenshots/              # UI application images for repository documentation
 ├── sensors/
-│   ├── run.py                # scapy flow capture + periodic ARP sweep
+│   ├── run.py                # Scapy flow capture + periodic local ARP sweep
 │   └── requirements.txt
+├── .env.example
+├── .gitignore
 ├── backend.Dockerfile
-├── sensor.Dockerfile
 ├── docker-compose.yml
-└── .env.example
+└── sensor.Dockerfile
+```
+
+---
 
 ## Quickstart
 
