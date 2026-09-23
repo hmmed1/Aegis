@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aegis · Network Monitor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: { 950: '#0B132B', 900: '#0F1B3C', 800: '#1C2541', 700: '#26305A' },
+          accent: { indigo: '#6366F1', cyan: '#22D3EE' },
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body { background-color: #0B132B; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #26305A; border-radius: 4px; }
+  .status-dot { box-shadow: 0 0 0 3px rgba(34,211,238,0.15); }
+</style>
+</head>
+<body class="min-h-screen text-white font-sans antialiased">
+
+{% if view == 'login' %}
+<!-- ===================== LOGIN GATE ===================== -->
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-sm">
+    <div class="flex items-center gap-2 justify-center mb-8">
+      <span class="text-2xl">🛡️</span>
+      <span class="text-xl font-semibold tracking-tight">Aegis</span>
+    </div>
+    <div class="bg-navy-800 border border-navy-700 rounded-xl p-8 shadow-xl">
+      <h1 class="text-lg font-medium mb-1">Sign in</h1>
+      <p class="text-sm text-slate-400 mb-6">Access your network monitoring dashboard.</p>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm text-slate-300 mb-1" for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required
+            class="w-full bg-navy-900 border border-navy-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan" />
+        </div>
+        <div>
+          <label class="block text-sm text-slate-300 mb-1" for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required
+            class="w-full bg-navy-900 border border-navy-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan" />
+        </div>
+        <p id="login-error" class="text-sm text-rose-400 hidden"></p>
+        <button type="submit"
+          class="w-full bg-accent-indigo hover:bg-indigo-500 transition-colors rounded-lg py-2 text-sm font-medium">
+          Sign in
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('login-error');
+    errEl.classList.add('hidden');
+    const body = {
+      username: document.getElementById('username').value,
+      password: document.getElementById('password').value,
+    };
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.detail || 'Login failed';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      window.location.href = data.redirect || '/';
+    } catch (err) {
+      errEl.textContent = 'Could not reach the server.';
+      errEl.classList.remove('hidden');
+    }
+  });
+</script>
+
+{% else %}
+<!-- ===================== DASHBOARD ===================== -->
+<div class="min-h-screen flex flex-col">
+
+  <!-- Top bar -->
+  <header class="border-b border-navy-700 bg-navy-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🛡️</span>
+        <span class="font-semibold tracking-tight">Aegis</span>
+      </div>
+      <div class="relative">
+        <button id="profile-btn"
+          class="w-9 h-9 rounded-full bg-navy-800 border border-navy-700 flex items-center justify-center hover:border-accent-cyan transition-colors">
+          <span class="text-sm">👤</span>
+        </button>
+        <div id="profile-menu"
+          class="hidden absolute right-0 mt-2 w-44 bg-navy-800 border border-navy-700 rounded-lg shadow-xl overflow-hidden">
+          <button id="config-btn" class="w-full text-left px-4 py-2 text-sm hover:bg-navy-700 transition-colors">
+            Configuration
+          </button>
+          <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm hover:bg-navy-700 transition-colors text-rose-400">
+            Log out
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+
+    <!-- Sensors list view -->
+    <section id="sensors-view">
+      <div class="flex items-baseline justify-between mb-6">
+        <h1 class="text-lg font-medium">Sensors</h1>
+        <span class="text-xs text-slate-500" id="sensor-count"></span>
+      </div>
+      <div id="sensors-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <p id="sensors-empty" class="hidden text-sm text-slate-500 mt-4">
+        No sensors have reported in yet. Start a sensor worker to see it here.
+      </p>
+    </section>
+
+    <!-- Per-sensor workspace view -->
+    <section id="workspace-view" class="hidden">
+      <button id="back-btn" class="flex items-center gap-1.5 text-sm text-slate-300 hover:text-white mb-6 transition-colors">
+        <span>←</span><span>Sensors</span>
+      </button>
+
+      <h1 id="workspace-title" class="text-lg font-medium mb-4"></h1>
+
+      <div class="flex gap-1 border-b border-navy-700 mb-4">
+        <button data-tab="traffic" class="tab-btn px-4 py-2 text-sm border-b-2 border-accent-cyan text-white">
+          Traffic monitor
+        </button>
+        <button data-tab="devices" class="tab-btn px-4 py-2 text-sm border-b-2 border-transparent text-slate-400 hover:text-white">
+          Device discovery
+        </button>
+      </div>
+
+      <div id="tab-traffic" class="tab-panel">
+        <div class="bg-navy-800 border border-navy-700 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-navy-900/60 text-slate-400 text-left">
+              <tr>
+                <th class="px-4 py-2 font-normal">Source</th>
+                <th class="px-4 py-2 font-normal">Destination</th>
+                <th class="px-4 py-2 font-normal">Protocol</th>
+                <th class="px-4 py-2 font-normal">Packets</th>
+                <th class="px-4 py-2 font-normal">Bytes</th>
+              </tr>
+            </thead>
+            <tbody id="flows-body"></tbody>
+          </table>
+          <p id="flows-empty" class="hidden text-sm text-slate-500 px-4 py-6">No active flows reported.</p>
+        </div>
+      </div>
+
+      <div id="tab-devices" class="tab-panel hidden">
+        <div class="bg-navy-800 border border-navy-700 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-navy-900/60 text-slate-400 text-left">
+              <tr>
+                <th class="px-4 py-2 font-normal">IP address</th>
+                <th class="px-4 py-2 font-normal">MAC address</th>
+                <th class="px-4 py-2 font-normal">Vendor</th>
+              </tr>
+            </thead>
+            <tbody id="devices-body"></tbody>
+          </table>
+          <p id="devices-empty" class="hidden text-sm text-slate-500 px-4 py-6">No devices discovered yet.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Persistent bottom-left connection tag (workspace view only) -->
+  <div id="connection-tag"
+    class="hidden fixed bottom-4 left-4 bg-navy-800 border border-navy-700 rounded-full px-3 py-1.5 text-xs text-slate-300 shadow-lg z-40">
+    🔌 Connected to: <span id="connection-tag-name" class="text-accent-cyan font-medium"></span>
+  </div>
+</div>
+
+<script>
+(() => {
+  const sensorsView = document.getElementById('sensors-view');
+  const workspaceView = document.getElementById('workspace-view');
+  const sensorsGrid = document.getElementById('sensors-grid');
+  const sensorsEmpty = document.getElementById('sensors-empty');
+  const sensorCount = document.getElementById('sensor-count');
+  const connectionTag = document.getElementById('connection-tag');
+  const connectionTagName = document.getElementById('connection-tag-name');
+  const workspaceTitle = document.getElementById('workspace-title');
+
+  let currentSensor = null;
+  let listPoll = null;
+  let workspacePoll = null;
+
+  // ---------- Sensors list ----------
+  async function refreshSensors() {
+    try {
+      const res = await fetch('/api/v1/sensors');
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const sensors = await res.json();
+      renderSensors(sensors);
+    } catch (e) { /* transient network error, ignore this tick */ }
+  }
+
+  function renderSensors(sensors) {
+    sensorCount.textContent = sensors.length ? `${sensors.length} total` : '';
+    sensorsEmpty.classList.toggle('hidden', sensors.length !== 0);
+    sensorsGrid.innerHTML = sensors.map(s => `
+      <button data-sensor="${s.sensor_id}"
+        class="sensor-card text-left bg-navy-800 border border-navy-700 rounded-xl p-4 hover:border-accent-cyan transition-colors">
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-medium truncate">${s.sensor_id}</span>
+          <span class="flex items-center gap-1.5 text-xs ${s.online ? 'text-emerald-400' : 'text-slate-500'}">
+            <span class="w-2 h-2 rounded-full status-dot ${s.online ? 'bg-emerald-400' : 'bg-slate-600'}"></span>
+            ${s.online ? 'Online' : 'Offline'}
+          </span>
+        </div>
+        <div class="flex gap-4 text-xs text-slate-400">
+          <span>${s.flow_count} flows</span>
+          <span>${s.device_count} devices</span>
+        </div>
+      </button>
+    `).join('');
+    sensorsGrid.querySelectorAll('.sensor-card').forEach(el => {
+      el.addEventListener('click', () => openWorkspace(el.dataset.sensor));
+    });
+  }
+
+  // ---------- Workspace ----------
+  function openWorkspace(sensorId) {
+    currentSensor = sensorId;
+    workspaceTitle.textContent = sensorId;
+    connectionTagName.textContent = sensorId;
+    sensorsView.classList.add('hidden');
+    workspaceView.classList.remove('hidden');
+    connectionTag.classList.remove('hidden');
+    clearInterval(listPoll);
+    switchTab('traffic');
+    refreshWorkspace();
+    workspacePoll = setInterval(refreshWorkspace, 2000);
+  }
+
+  function closeWorkspace() {
+    currentSensor = null;
+    clearInterval(workspacePoll);
+    workspaceView.classList.add('hidden');
+    sensorsView.classList.remove('hidden');
+    connectionTag.classList.add('hidden');
+    refreshSensors();
+    listPoll = setInterval(refreshSensors, 2000);
+  }
+
+  async function refreshWorkspace() {
+    if (!currentSensor) return;
+    try {
+      const [flowsRes, devicesRes] = await Promise.all([
+        fetch(`/api/v1/sensors/${encodeURIComponent(currentSensor)}/flows`),
+        fetch(`/api/v1/sensors/${encodeURIComponent(currentSensor)}/devices`),
+      ]);
+      if (flowsRes.status === 401) { window.location.href = '/login'; return; }
+      const flowsData = await flowsRes.json();
+      const devicesData = await devicesRes.json();
+      renderFlows(flowsData.flows || []);
+      renderDevices(devicesData.devices || []);
+    } catch (e) { /* transient network error, ignore this tick */ }
+  }
+
+  function renderFlows(flows) {
+    const body = document.getElementById('flows-body');
+    document.getElementById('flows-empty').classList.toggle('hidden', flows.length !== 0);
+    body.innerHTML = flows.map(f => `
+      <tr class="border-t border-navy-700/60">
+        <td class="px-4 py-2 font-mono text-xs">${f.src_ip}${f.src_port ? ':' + f.src_port : ''}</td>
+        <td class="px-4 py-2 font-mono text-xs">${f.dst_ip}${f.dst_port ? ':' + f.dst_port : ''}</td>
+        <td class="px-4 py-2 text-slate-300">${f.protocol}</td>
+        <td class="px-4 py-2 text-slate-300">${f.packets}</td>
+        <td class="px-4 py-2 text-slate-300">${f.bytes}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderDevices(devices) {
+    const body = document.getElementById('devices-body');
+    document.getElementById('devices-empty').classList.toggle('hidden', devices.length !== 0);
+    body.innerHTML = devices.map(d => `
+      <tr class="border-t border-navy-700/60">
+        <td class="px-4 py-2 font-mono text-xs">${d.ip}</td>
+        <td class="px-4 py-2 font-mono text-xs">${d.mac}</td>
+        <td class="px-4 py-2 text-slate-300">${d.vendor || 'Unknown'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      const active = btn.dataset.tab === tab;
+      btn.classList.toggle('border-accent-cyan', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-transparent', !active);
+      btn.classList.toggle('text-slate-400', !active);
+    });
+    document.getElementById('tab-traffic').classList.toggle('hidden', tab !== 'traffic');
+    document.getElementById('tab-devices').classList.toggle('hidden', tab !== 'devices');
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  document.getElementById('back-btn').addEventListener('click', closeWorkspace);
+
+  // ---------- Profile menu ----------
+  const profileBtn = document.getElementById('profile-btn');
+  const profileMenu = document.getElementById('profile-menu');
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    profileMenu.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!profileMenu.contains(e.target) && e.target !== profileBtn) {
+      profileMenu.classList.add('hidden');
+    }
+  });
+  document.getElementById('config-btn').addEventListener('click', () => {
+    alert('Configuration is coming soon.');
+    profileMenu.classList.add('hidden');
+  });
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    const res = await fetch('/api/v1/auth/logout', { method: 'POST' });
+    const data = await res.json();
+    window.location.href = data.redirect || '/login';
+  });
+
+  // ---------- Boot ----------
+  refreshSensors();
+  listPoll = setInterval(refreshSensors, 2000);
+})();
+</script>
+{% endif %}
+
+</body>
+</html>
